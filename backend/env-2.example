@@ -1,0 +1,37 @@
+# API Selection: "openai" or "ollama"
+API_TYPE=openai
+
+# OpenAI Configuration (Azure OpenAI)
+OPENAI_API_TYPE=azure
+OPENAI_API_KEY=your-azure-openai-api-key-here
+OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
+OPENAI_API_VERSION=2023-05-15
+OPENAI_MODEL=gpt-4
+OPENAI_EMBEDDING_MODEL=text-embedding-ada-002
+OPENAI_EMBEDDING_VEC_LEN=1536
+
+# Ollama Configuration (On-Premises - optional)
+# OLLAMA_ENDPOINT=http://localhost:11434
+# OLLAMA_MODEL=kimi-k2.5:cloud
+# OLLAMA_EMBEDDING_MODEL=qwen3-embedding:4b
+# OLLAMA_EMBEDDING_VEC_LEN=768
+
+# Database Configuration (PostgreSQL + pgvector)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=ticket_rag
+DB_USER=postgres
+DB_PASSWORD=your-postgres-password-here
+
+# RAG Configuration
+RAG_TOP_K=5
+RAG_SIMILARITY_THRESHOLD=0.7
+
+# Agent Configuration
+AGENT_MAX_TOKENS=2000
+AGENT_TEMPERATURE=0.0
+AGENT_MAX_RETRIES=3
+
+# Application Configuration
+LOG_LEVEL=INFO
+BATCH_SIZE=100

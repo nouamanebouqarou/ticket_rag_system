@@ -1,0 +1,100 @@
+name: ticket_rag_system
+
+services:
+  # Compose a postgres database with the extension pgvector
+  pgvector:
+    hostname: postgres
+    image: ankane/pgvector:v0.5.1
+    ports:
+     - ${POSTGRES_PORT}:5432
+    restart: always
+    environment:
+      - POSTGRES_DB=vectordb
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+     - ./docker_data/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+     - ./docker_data/postgres/postgres-data:/var/lib/postgresql/data
+    container_name: pgvector
+    networks:
+      pg-net:
+        ipv4_address: ${POSTGRES_IP}
+
+  # Compose Ollama
+  ollama:
+    hostname: ollama
+    image: ollama/ollama:latest
+    ports:
+      - ${OLLAMA_PORT}:11434
+    volumes:
+      - ./docker_data/ollama/ollama:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: always
+    environment:
+      - OLLAMA_API_KEY={OLLAMA_API_KEY}
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      pg-net:
+        ipv4_address: ${OLLAMA_IP}
+
+  # Compose Ticket RAG API
+  ticket-rag-api:
+    image: ticket-rag-backend:v0.1
+    ports:
+      - ${BACKEND_API_PORT}:8080
+    restart: unless-stopped
+    environment:
+      - API_TYPE=${BACKEND_API_TYPE}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL}
+      - OLLAMA_ENDPOINT=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - OLLAMA_EMBEDDING_MODEL=${OLLAMA_EMBEDDING_MODEL}
+      - VERTEXAI_PROJECT_ID=${VERTEXAI_PROJECT_ID}
+      - VERTEXAI_REGION=${VERTEXAI_REGION}
+      - DB_HOST=${POSTGRES_HOST}
+      - DB_PORT=${POSTGRES_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - RAG_TOP_K=${RAG_TOP_K}
+      - RAG_SIMILARITY_THRESHOLD=${RAG_SIMILARITY_THRESHOLD}
+      - AGENT_MAX_TOKENS=${AGENT_MAX_TOKENS}
+      - AGENT_TEMPERATURE=${AGENT_TEMPERATURE}
+      - LOG_LEVEL=${LOG_LEVEL}
+    container_name: ticket-rag-api
+    networks:
+      pg-net:
+        ipv4_address: ${BACKEND_API_IP}
+    depends_on:
+      - pgvector
+      - ollama
+
+  # Compose Ticket RAG Frontend
+  ticket-rag-frontend:
+    image: ticket-rag-frontend:v0.1
+    ports:
+      - ${FRONTEND_PORT}:80
+    environment:
+      API_URL: http://${BACKEND_API_IP}:${BACKEND_API_PORT}
+    restart: unless-stopped
+    container_name: ticket-rag-frontend
+    networks:
+      pg-net:
+        ipv4_address: ${FRONTEND_IP}
+    depends_on:
+      - ticket-rag-api
+
+networks:
+  pg-net:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1
