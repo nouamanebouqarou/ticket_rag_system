@@ -1,6 +1,6 @@
-# Ticket RAG System - React Frontend
+# Ticket RAG System - Streamlit Frontend
 
-A modern React-based frontend for the Ticket RAG System API.
+A modern Streamlit-based frontend for the Ticket RAG System API.
 
 ## Features
 
@@ -11,64 +11,62 @@ A modern React-based frontend for the Ticket RAG System API.
 
 ## Prerequisites
 
-- Node.js 16+
-- npm or yarn
-- Backend API running on `http://localhost:8000`
+- Python 3.11+
+- pip
+- Backend API running on `http://localhost:8080`
 
 ## Installation
 
 ```bash
 # Navigate to frontend directory
 cd frontend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
-npm install
+pip install -r requirements.txt
 ```
 
 ## Configuration
 
-Create a `.env` file in the frontend directory:
+Set the API URL environment variable (optional, defaults to `http://localhost:8080`):
+
+```bash
+export API_URL=http://localhost:8000
+```
+
+Or when running with Docker, set in your `.env` file:
 
 ```env
-REACT_APP_API_URL=http://localhost:8000
+API_URL=http://ticket-rag-api:8080
 ```
 
 ## Running
 
 ```bash
-# Start development server
-npm start
+# Start Streamlit server
+streamlit run app.py
 ```
 
-The app will be available at `http://localhost:3000`.
+The app will be available at `http://localhost:8501`.
 
-## Building for Production
+## Running with Docker
 
 ```bash
-# Create production build
-npm run build
+# Build and run with docker-compose
+docker-compose up --build ticket-rag-frontend
 ```
 
-The build output will be in the `build/` directory.
+The app will be available at `http://localhost:${FRONTEND_PORT}` (default: 3000).
 
 ## Project Structure
 
 ```
 frontend/
-├── public/
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   ├── Dashboard.js        # Statistics dashboard
-│   │   ├── TicketAnalyzer.js   # Ticket analysis form
-│   │   ├── TicketSearch.js     # Similar ticket search
-│   │   └── ResolutionSuggester.js  # Resolution suggestions
-│   ├── services/
-│   │   └── api.js              # API client
-│   ├── App.js                  # Main application component
-│   ├── App.css                 # Styles
-│   └── index.js                # Entry point
-├── package.json
+├── app.py                 # Main Streamlit application
+├── requirements.txt       # Python dependencies
+├── Dockerfile            # Docker image configuration
+├── .dockerignore         # Docker ignore rules
 └── README.md
 ```
 
@@ -76,12 +74,12 @@ frontend/
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/status` | GET | System status |
-| `/stats` | GET | Database statistics |
-| `/domains` | GET | List all domains |
-| `/analyze` | POST | Analyze a ticket |
-| `/search` | POST | Search similar tickets |
-| `/suggest-resolution` | POST | Get resolution suggestions |
+| `/api/status` | GET | System status |
+| `/api/stats` | GET | Database statistics |
+| `/api/domains` | GET | List all domains |
+| `/api/analyze` | POST | Analyze a ticket |
+| `/api/search` | POST | Search similar tickets |
+| `/api/suggest-resolution` | POST | Get resolution suggestions |
 
 ## Screenshots
 
@@ -104,39 +102,62 @@ Get AI-powered resolution suggestions based on historically similar tickets.
 ## Customization
 
 ### Styling
-Edit `src/App.css` to customize the appearance. The app uses CSS variables for easy theming:
+The app uses custom CSS embedded in `app.py`. Modify the CSS in the `st.markdown()` block to change the appearance:
 
-```css
-:root {
-  --primary: #6366f1;
-  --secondary: #0ea5e9;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --bg-dark: #1a1a2e;
-  --bg-card: #16213e;
-  --bg-input: #0f172a;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border: #334155;
-}
+```python
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    /* Add your custom styles here */
+</style>
+""", unsafe_allow_html=True)
+```
+
+Streamlit theming can also be configured via `~/.streamlit/config.toml`:
+
+```toml
+[theme]
+primaryColor = "#6366f1"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
 ```
 
 ### API Configuration
-Update `src/services/api.js` to change the API base URL or add authentication headers.
+Update the `API_BASE_URL` variable at the top of `app.py` to change the API endpoint:
+
+```python
+API_BASE_URL = os.getenv('API_URL', 'http://localhost:8000')
+```
 
 ## Troubleshooting
-
-### CORS Issues
-If you see CORS errors, ensure the backend has CORS enabled for `http://localhost:3000`.
 
 ### Connection Refused
 Make sure the backend API is running on port 8000:
 ```bash
 cd ..
-source venv/bin/activate
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Empty Domains List
 If the domains dropdown is empty, make sure you've analyzed some tickets first.
+
+### Streamlit Not Found
+If you get "command not found: streamlit", make sure you've installed the requirements:
+```bash
+pip install -r requirements.txt
+```
+
+Or run via Python module:
+```bash
+python -m streamlit run app.py
+```
+
+### Port Already in Use
+If port 8501 is already in use, specify a different port:
+```bash
+streamlit run app.py --server.port 8502
+```
