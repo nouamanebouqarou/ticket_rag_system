@@ -76,13 +76,13 @@ services:
       - pgvector
       - ollama
 
-  # Compose Ticket RAG Frontend
+  # Compose Ticket RAG Frontend (Streamlit)
   ticket-rag-frontend:
     image: ticket-rag-frontend:v0.1
     ports:
-      - ${FRONTEND_PORT}:80
+      - ${FRONTEND_PORT}:8501
     environment:
-      API_URL: http://${BACKEND_API_IP}:${BACKEND_API_PORT}
+      - API_URL=http://${BACKEND_API_IP}:${BACKEND_API_PORT}
     restart: unless-stopped
     container_name: ticket-rag-frontend
     networks:
