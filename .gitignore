@@ -79,7 +79,6 @@ dmypy.json
 cython_debug/
 
 # Project specific
-data/
 docker_data/
 outputs/
 checkpoints/

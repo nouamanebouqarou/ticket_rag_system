@@ -60,6 +60,8 @@ class SimilarTicketResponse(BaseModel):
     similarity: float
     cause: Optional[str] = None
     resolution_summary: Optional[str] = None
+    is_resolved: Optional[bool] = None
+    domain: Optional[str] = None
 
 
 class ResolutionResponse(BaseModel):

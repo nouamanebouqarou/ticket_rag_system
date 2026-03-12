@@ -381,10 +381,10 @@ elif page == "Search Similar":
                     "similarity_threshold": similarity_threshold
                 })
 
-            if results and results.get("results"):
-                st.success(f"Found {len(results['results'])} similar tickets")
+            if results and len(results)>0:
+                st.success(f"Found {len(results)} similar tickets")
 
-                for i, ticket in enumerate(results["results"], 1):
+                for i, ticket in enumerate(results, 1):
                     similarity = ticket.get("similarity", 0)
                     similarity_pct = round(similarity * 100, 1)
 
@@ -399,9 +399,9 @@ elif page == "Search Similar":
                             status_text = "Resolved" if ticket.get("is_resolved") else "Unresolved"
                             st.markdown(f"**Status:** :{status_color}[{status_text}]")
 
-                        if ticket.get("cause_summary"):
+                        if ticket.get("cause"):
                             st.markdown("**Root Cause:**")
-                            st.write(ticket["cause_summary"])
+                            st.write(ticket["cause"])
 
                         if ticket.get("resolution_summary"):
                             st.markdown("**Resolution:**")

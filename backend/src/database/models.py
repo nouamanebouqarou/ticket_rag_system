@@ -106,6 +106,14 @@ class TicketSearchResult:
     @property
     def resolution_summary(self) -> Optional[str]:
         return self.ticket.resolution_summary
+    
+    @property
+    def is_resolved(self) -> bool:
+        return self.ticket.is_resolved
+    
+    @property
+    def domain(self) -> str:
+        return self.ticket.domain
 
     def __repr__(self) -> str:
         return f"<TicketSearchResult(ticket_number='{self.ticket_number}', similarity={self.similarity:.4f})>"
