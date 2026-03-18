@@ -31,6 +31,7 @@ class ResolutionRequest(BaseModel):
     problem_description: str
     domain: str
     top_k: int = 5
+    similarity_threshold: float = 0.7
 
 
 # Response Models

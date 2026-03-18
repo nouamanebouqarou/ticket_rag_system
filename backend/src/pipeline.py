@@ -345,7 +345,8 @@ class TicketPipeline(LoggerMixin):
         self,
         problem_description: str,
         domain: str,  # REQUIRED
-        top_k: int = 5
+        top_k: int = 5,
+        similarity_threshold: float = 0.7
     ) -> str:
         """Generate resolution suggestions for a problem.
         
@@ -371,7 +372,8 @@ class TicketPipeline(LoggerMixin):
         return generator.generate_resolution(
             problem_description,
             domain=domain,
-            top_k=top_k
+            top_k=top_k,
+            similarity_threshold=similarity_threshold
         )
 
 

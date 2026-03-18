@@ -190,7 +190,8 @@ async def suggest_resolution(request: ResolutionRequest):
         suggestions = pipeline.suggest_resolution(
             problem_description=request.problem_description,
             domain=request.domain,
-            top_k=request.top_k
+            top_k=request.top_k,
+            similarity_threshold=request.similarity_threshold
         )
         return ResolutionResponse(suggestions=suggestions)
     except Exception as e:

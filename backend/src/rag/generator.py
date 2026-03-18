@@ -74,6 +74,7 @@ class ResolutionGenerator(LoggerMixin):
         problem_description: str,
         domain: str,  # REQUIRED domain
         top_k: int = 5,
+        similarity_threshold: float = 0.7,
         max_tokens: int = 2000
     ) -> str:
         """Generate resolution suggestions for a problem.
@@ -102,6 +103,7 @@ class ResolutionGenerator(LoggerMixin):
             query=problem_description,
             domain=domain,
             top_k=top_k,
+            similarity_threshold=similarity_threshold,
             include_cause=True,
             include_resolution=True
         )

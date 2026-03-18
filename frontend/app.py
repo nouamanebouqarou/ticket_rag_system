@@ -124,7 +124,7 @@ def api_get(endpoint):
 def api_post(endpoint, data):
     """Make POST request to API"""
     try:
-        response = requests.post(f"{API_BASE_URL}/{endpoint}", json=data, timeout=30)
+        response = requests.post(f"{API_BASE_URL}/{endpoint}", json=data, timeout=130)
         response.raise_for_status()
         return response.json()
     except Exception as e:
@@ -361,21 +361,23 @@ elif page == "Search Similar":
         col1, col2 = st.columns(2)
         with col1:
             domain_options = [""] + domains if domains else [""]
-            domain = st.selectbox("Domain (Optional)", domain_options, format_func=lambda x: "Any domain" if x == "" else x)
+            domain = st.selectbox("Domain (Required)", domain_options, format_func=lambda x: "Select a domain..." if x == "" else x)
         with col2:
             top_k = st.slider("Number of Results", min_value=1, max_value=20, value=5)
 
-        similarity_threshold = st.slider("Similarity Threshold", min_value=0.0, max_value=1.0, value=0.7, step=0.05)
+        similarity_threshold = st.slider("Similarity Threshold", min_value=0.0, max_value=1.0, value=0.7, step=0.01)
 
         submitted = st.form_submit_button("Search", type="primary", use_container_width=True)
 
     if submitted:
         if not query.strip():
             st.error("Please enter a search query")
+        elif not domain.strip():
+            st.error("Please select a domain")
         else:
             with st.spinner("Searching for similar tickets..."):
                 results = api_post("search", {
-                    "query": query.strip(),
+                    "query": query.strip().replace("\n", " \n").replace('"', "\'"),
                     "domain": domain if domain else None,
                     "top_k": top_k,
                     "similarity_threshold": similarity_threshold
@@ -423,26 +425,30 @@ elif page == "Suggest Resolution":
         col1, col2 = st.columns(2)
         with col1:
             domain_options = [""] + domains if domains else [""]
-            domain = st.selectbox("Domain (Optional)", domain_options, format_func=lambda x: "Any domain" if x == "" else x)
+            domain = st.selectbox("Domain (Required)", domain_options, format_func=lambda x: "Select a domain..." if x == "" else x)
         with col2:
             top_k = st.slider("Number of References", min_value=1, max_value=10, value=5)
+        similarity_threshold = st.slider("Similarity Threshold", min_value=0.0, max_value=1.0, value=0.7, step=0.01)
 
         submitted = st.form_submit_button("Get Suggestions", type="primary", use_container_width=True)
 
     if submitted:
         if not problem_description.strip():
             st.error("Please enter a problem description")
+        elif not domain.strip():
+            st.error("Please select a domain")
         else:
             with st.spinner("Generating resolution suggestions..."):
                 result = api_post("suggest-resolution", {
-                    "problem_description": problem_description.strip(),
+                    "problem_description": problem_description.strip().replace("\n", " \n").replace('"', "\'"),
                     "domain": domain if domain else None,
-                    "top_k": top_k
+                    "top_k": top_k,
+                    "similarity_threshold": similarity_threshold
                 })
 
             if result:
                 st.markdown("### Suggested Resolution")
-                st.markdown(result.get("suggestion", "No suggestion generated"))
+                st.markdown(result.get("suggestions", "No suggestion generated"))
 
                 if result.get("references"):
                     st.markdown("---")

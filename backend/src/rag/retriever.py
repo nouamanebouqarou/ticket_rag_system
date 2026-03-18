@@ -5,7 +5,7 @@ from typing import List, Optional
 import numpy as np
 
 from ..database import TicketRepository, TicketSearchResult
-from ..agents import EmbeddingAgent
+from ..agents import EmbeddingAgent, TicketAgent
 from ..utils.config import Config
 from ..utils.logger import LoggerMixin
 
@@ -20,7 +20,8 @@ class TicketRetriever(LoggerMixin):
         self,
         config: Config,
         repository: Optional[TicketRepository] = None,
-        embedding_agent: Optional[EmbeddingAgent] = None
+        embedding_agent: Optional[EmbeddingAgent] = None,
+        ticket_agent: Optional[TicketAgent] = None
     ):
         """Initialize the retriever.
         
@@ -32,6 +33,7 @@ class TicketRetriever(LoggerMixin):
         self.config = config
         self.repository = repository or TicketRepository(config)
         self.embedding_agent = embedding_agent or EmbeddingAgent(config)
+        self.ticket_agent = ticket_agent or TicketAgent(config)
     
     def find_similar(
         self,
@@ -71,19 +73,37 @@ class TicketRetriever(LoggerMixin):
             f"Searching for similar tickets in domain '{domain}': "
             f"query='{query[:50]}...', top_k={top_k}"
         )
-        
-        # Generate query embedding
-        query_embedding = self.embedding_agent.generate_embedding(query)
-        
-        # Search database with domain filter
-        results = self.repository.search_similar_tickets(
-            query_embedding=query_embedding,
-            domain=domain,  # CRITICAL: Domain filter
-            top_k=top_k,
-            similarity_threshold=similarity_threshold,
-            resolved_only=filter_resolved
-        )
-        
+        results=[]
+        try:
+            # Step 1: Analyze ticket
+            self.logger.debug("Step 1: Analyzing ticket")
+            cause_summary, keywords = self.ticket_agent.analyze_cause(query)
+            # Step 2: Generate embedding
+            self.logger.warning(f"Cause summary: {cause_summary}")
+            if cause_summary:
+                embedding_text = self.embedding_agent.prepare_text_for_embedding(
+                    cause_summary=cause_summary,
+                    keywords=keywords,
+                    domain=domain
+                )
+                query_embedding = self.embedding_agent(embedding_text)
+                # Generate query embedding
+                #query_embedding = self.embedding_agent.generate_embedding(embedding_text)
+
+                # Search database with domain filter
+                results = self.repository.search_similar_tickets(
+                    query_embedding=query_embedding,
+                    domain=domain,  # CRITICAL: Domain filter
+                    top_k=top_k,
+                    similarity_threshold=similarity_threshold,
+                    resolved_only=filter_resolved
+                )
+            else:
+                self.logger.warning("No cause summary available, skipping embedding")
+            
+        except Exception as e:
+            self.logger.error(f"Error processing ticket : {e}")
+            
         self.logger.info(f"Found {len(results)} similar tickets in domain '{domain}'")
         return results
     
@@ -135,6 +155,7 @@ class TicketRetriever(LoggerMixin):
         query: str,
         domain: str,  # REQUIRED domain filter
         top_k: Optional[int] = None,
+        similarity_threshold: Optional[float] = 0.7,
         include_cause: bool = True,
         include_resolution: bool = True
     ) -> str:
@@ -144,6 +165,7 @@ class TicketRetriever(LoggerMixin):
             query: Query text
             domain: Domain to search within (REQUIRED)
             top_k: Number of similar tickets to retrieve
+            similarity_threshold: Minimum similarity threshold
             include_cause: Include cause information
             include_resolution: Include resolution information
             
@@ -156,7 +178,7 @@ class TicketRetriever(LoggerMixin):
         if not domain:
             raise ValueError("Domain is required for context retrieval")
         
-        results = self.find_similar(query, domain=domain, top_k=top_k)
+        results = self.find_similar(query, domain=domain, top_k=top_k, similarity_threshold=similarity_threshold)
         
         if not results:
             return f"No similar resolved tickets found in domain '{domain}'."

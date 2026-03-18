@@ -24,7 +24,7 @@ services:
   # Compose Ollama
   ollama:
     hostname: ollama
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.18.1
     ports:
       - ${OLLAMA_PORT}:11434
     volumes:

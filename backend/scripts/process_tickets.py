@@ -78,7 +78,7 @@ def main():
         
         # Load input CSV
         logger.info(f"Loading tickets from {args.input_file}")
-        df = pd.read_csv(args.input_file)
+        df = pd.read_csv(args.input_file, sep=';')
         logger.info(f"Loaded {len(df)} tickets")
         
         # Validate columns
