@@ -28,7 +28,6 @@ build/
 # Data
 *.db
 *.sqlite
-*.csv
 
 # Logs
 *.log

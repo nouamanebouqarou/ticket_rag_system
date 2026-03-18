@@ -88,10 +88,7 @@ class TicketAgent(LoggerMixin):
         else:
             # Configure VertexAI
             from google import genai
-            self.vertexai_client = genai.Client(
-                project=config.vertexai_project_id,
-                location=config.vertexai_region
-            )
+            self.vertexai_client = genai.Client()
             self.model = config.vertexai_model
 
         self.max_tokens = config.agent_max_tokens
@@ -136,10 +133,10 @@ class TicketAgent(LoggerMixin):
             response = self.vertexai_client.models.generate_content(
                 model=self.model,
                 contents=prompt,
-                config={
-                    "max_output_tokens": max_tokens or self.max_tokens,
-                    "temperature": self.temperature
-                }
+                # config={
+                #     "max_output_tokens": max_tokens or self.max_tokens,
+                #     "temperature": self.temperature
+                # }
             )
             return response.text.strip()
     

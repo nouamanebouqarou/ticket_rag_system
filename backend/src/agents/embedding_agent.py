@@ -7,6 +7,7 @@ import openai
 import ollama
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+
 from ..utils.config import Config
 from ..utils.logger import LoggerMixin
 
@@ -46,11 +47,13 @@ class EmbeddingAgent(LoggerMixin):
         else:
             # Configure VertexAI
             from google import genai
-            self.vertexai_client = genai.Client(
-                project=config.vertexai_project_id,
-                location=config.vertexai_region
-            )
+            from google.genai.types import EmbedContentConfig
+            self.vertexai_client = genai.Client()
             self.embedding_model = config.vertexai_embedding_model
+            self.embedding_config = EmbedContentConfig(
+                                        task_type="SEMANTIC_SIMILARITY", #"RETRIEVAL_DOCUMENT",
+                                        output_dimensionality=config.vertexai_embedding_vec_len
+                                    )
     
     @retry(
         stop=stop_after_attempt(3),
@@ -88,11 +91,12 @@ class EmbeddingAgent(LoggerMixin):
                 embedding = np.array(response["embedding"], dtype=np.float32)
             else:
                 # VertexAI
-                response = self.vertexai_client.models.get_embeddings(
+                response = self.vertexai_client.models.embed_content(
                     model=self.embedding_model,
-                    texts=[text]
-                )
-                embedding = np.array(response[0].embeddings[0], dtype=np.float32)
+                    contents=text,
+                    config=self.embedding_config 
+                )                
+                embedding = np.array(response.embeddings[0].values, dtype=np.float32)
 
             #self.logger.info(f"Generated embedding:  {embedding}")
             self.logger.info(f"Generated embedding of shape {embedding.shape}")

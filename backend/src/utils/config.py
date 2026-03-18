@@ -36,8 +36,9 @@ class Config(BaseSettings):
     vertexai_region: str = Field(default="us-central1", env="VERTEXAI_REGION")
     vertexai_model: str = Field(default="gemini-1.5-flash", env="VERTEXAI_MODEL")
     vertexai_embedding_model: str = Field(default="text-embedding-004", env="VERTEXAI_EMBEDDING_MODEL")
-    vertexai_embedding_vec_len: int = Field(default=768, env="VERTEXAI_EMBEDDING_VEC_LEN")
-    
+    vertexai_embedding_vec_len: int = Field(default=1536, env="VERTEXAI_EMBEDDING_VEC_LEN")
+
+
     # Database Configuration
     db_host: str = Field(default="localhost", env="DB_HOST")
     db_port: int = Field(default=5432, env="DB_PORT")
@@ -73,9 +74,9 @@ class Config(BaseSettings):
         """Get embedding vector length based on selected API."""
         if self.api_type == "ollama":
             return self.ollama_embedding_vec_len
-        if self.api_type == "vertexai":
-            return self.vertexai_embedding_vec_len
-        return self.openai_embedding_vec_len
+        if self.api_type == "openai":
+            return self.openai_embedding_vec_len
+        return self.vertexai_embedding_vec_len
 
     def __repr__(self) -> str:
         """Safe representation without sensitive data."""

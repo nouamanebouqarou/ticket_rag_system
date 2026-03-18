@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 
 
 # Module-level variable for embedding dimension (set at runtime from config)
-EMBEDDING_DIMENSION = 1024
+EMBEDDING_DIMENSION = 1536
 
 Base = declarative_base()
 

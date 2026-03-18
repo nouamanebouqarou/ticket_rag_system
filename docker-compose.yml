@@ -22,59 +22,63 @@ services:
         ipv4_address: ${POSTGRES_IP}
 
   # Compose Ollama
-  ollama:
-    hostname: ollama
-    image: ollama/ollama:0.18.1
-    ports:
-      - ${OLLAMA_PORT}:11434
-    volumes:
-      - ./docker_data/ollama/ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
-    tty: true
-    restart: always
-    environment:
-      - OLLAMA_API_KEY={OLLAMA_API_KEY}
-      - OLLAMA_KEEP_ALIVE=24h
-      - OLLAMA_HOST=0.0.0.0
-    networks:
-      pg-net:
-        ipv4_address: ${OLLAMA_IP}
+  # ollama:
+  #   hostname: ollama
+  #   image: ollama/ollama:0.18.1
+  #   ports:
+  #     - ${OLLAMA_PORT}:11434
+  #   volumes:
+  #     - ./docker_data/ollama/ollama:/root/.ollama
+  #   container_name: ollama
+  #   pull_policy: always
+  #   tty: true
+  #   restart: always
+  #   environment:
+  #     - OLLAMA_API_KEY={OLLAMA_API_KEY}
+  #     - OLLAMA_KEEP_ALIVE=24h
+  #     - OLLAMA_HOST=0.0.0.0
+  #   networks:
+  #     pg-net:
+  #       ipv4_address: ${OLLAMA_IP}
 
   # Compose Ticket RAG API
   ticket-rag-api:
-    image: ticket-rag-backend:v0.1
+    image: ticket-rag-backend:v0.2
     ports:
       - ${BACKEND_API_PORT}:8080
     restart: unless-stopped
     environment:
-      - API_TYPE=${BACKEND_API_TYPE}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
-      - OPENAI_MODEL=${OPENAI_MODEL}
-      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL}
-      - OLLAMA_ENDPOINT=http://ollama:11434
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
-      - OLLAMA_EMBEDDING_MODEL=${OLLAMA_EMBEDDING_MODEL}
-      - VERTEXAI_PROJECT_ID=${VERTEXAI_PROJECT_ID}
-      - VERTEXAI_REGION=${VERTEXAI_REGION}
+      # - API_TYPE=${BACKEND_API_TYPE}
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
+      # - OPENAI_MODEL=${OPENAI_MODEL}
+      # - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL}
+      # - OLLAMA_ENDPOINT=http://ollama:11434
+      # - OLLAMA_MODEL=${OLLAMA_MODEL}
+      # - OLLAMA_EMBEDDING_MODEL=${OLLAMA_EMBEDDING_MODEL}
+      # - VERTEXAI_PROJECT_ID=${VERTEXAI_PROJECT_ID}
+      # - VERTEXAI_REGION=${VERTEXAI_REGION}
       - DB_HOST=${POSTGRES_HOST}
       - DB_PORT=${POSTGRES_PORT}
       - DB_NAME=${POSTGRES_DB}
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - RAG_TOP_K=${RAG_TOP_K}
-      - RAG_SIMILARITY_THRESHOLD=${RAG_SIMILARITY_THRESHOLD}
-      - AGENT_MAX_TOKENS=${AGENT_MAX_TOKENS}
-      - AGENT_TEMPERATURE=${AGENT_TEMPERATURE}
-      - LOG_LEVEL=${LOG_LEVEL}
+      # - RAG_TOP_K=${RAG_TOP_K}
+      # - RAG_SIMILARITY_THRESHOLD=${RAG_SIMILARITY_THRESHOLD}
+      # - AGENT_MAX_TOKENS=${AGENT_MAX_TOKENS}
+      # - AGENT_TEMPERATURE=${AGENT_TEMPERATURE}
+      # - LOG_LEVEL=${LOG_LEVEL}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service_account.json
+      - GOOGLE_GENAI_USE_VERTEXAI=true
     container_name: ticket-rag-api
+    volumes:
+      - ./service_account.json:/app/service_account.json:ro
     networks:
       pg-net:
         ipv4_address: ${BACKEND_API_IP}
     depends_on:
       - pgvector
-      - ollama
+      #- ollama
 
   # Compose Ticket RAG Frontend (Streamlit)
   ticket-rag-frontend:
