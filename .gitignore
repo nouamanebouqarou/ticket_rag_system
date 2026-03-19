@@ -85,3 +85,4 @@ checkpoints/
 *.pkl
 *.csv
 !example.csv
+service_account.json
